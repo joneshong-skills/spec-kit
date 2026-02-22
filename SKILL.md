@@ -9,8 +9,8 @@ description: >-
   mentions specification-driven development, or discusses creating structured
   feature specifications, implementation plans, task breakdowns, or project
   constitutions for software projects.
-version: 0.1.0
-tools: Read, Bash, Edit, Write, Glob, Grep
+version: 0.2.0
+tools: Read, Bash, Edit, Write, Glob, Grep, sandbox_execute
 argument-hint: "<feature description or SDD command>"
 ---
 
@@ -19,6 +19,18 @@ argument-hint: "<feature description or SDD command>"
 Implement the Spec-Driven Development (SDD) methodology: specifications drive code,
 not the other way around. Transform feature descriptions into structured specs,
 implementation plans, and executable task lists.
+
+## Agent Delegation
+
+Delegate spec drafting to `writer` agent. Use `explorer` for codebase analysis.
+
+```
+Main context (SDD phase orchestration, clarification questions, constitution checks)
+  └─ Task(subagent_type: explorer, prompt: "Analyze the codebase at [path]. Return: directory structure, key modules, existing specs list, constitution.md summary if present. Output format: structured summary only.")
+  └─ Task(subagent_type: writer, prompt: "Fill the spec template for feature: [description]. User stories: [P1/P2/P3 list]. Requirements: [list]. Focus on WHAT and WHY only — no implementation details. Return only the completed spec.md markdown.")
+```
+
+Secondary: `explorer` is also used during the Analyze phase to load and diff spec/plan/tasks artifacts without writing context back to main.
 
 ## Core Concept
 
@@ -43,6 +55,8 @@ If the project lacks `.specify/`, create the necessary structure manually:
 - `memory/constitution.md` for project principles (use `references/constitution-template.md`)
 
 ## Workflow Commands
+
+> **Sandbox acceleration**: When scanning or validating multiple spec artifacts (spec.md, plan.md, tasks.md, checklists/) in batch, use `sandbox_execute` to read and cross-reference all files in one call, returning a structured findings summary instead of raw file content.
 
 Each command maps to a specific phase. Read the corresponding command reference
 in `references/commands/` for the full execution protocol.
@@ -205,6 +219,15 @@ For the full philosophical foundation and methodology rationale, read
 | Implement | tasks.md + all docs | Working code | -- |
 | Constitution | Principles | constitution.md | constitution-template.md |
 | Checklist | Domain focus | checklists/*.md | checklist-template.md |
+
+## Sandbox Optimization
+
+Batch operations benefit from `sandbox_execute`:
+
+- **Batch spec scanning/validation**: Read and cross-reference multiple artifacts (spec.md, plan.md, tasks.md, checklists/) in one sandbox call, returning structured findings instead of raw file content
+- Saves context tokens when handling 3+ spec artifacts simultaneously
+
+Principle: **Deterministic batch work → sandbox; reasoning/presentation → LLM.**
 
 ## Continuous Improvement
 
